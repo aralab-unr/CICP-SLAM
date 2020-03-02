@@ -1,1 +1,1 @@
-# MCC-EKF-SLAM
+# CICP-SLAM
