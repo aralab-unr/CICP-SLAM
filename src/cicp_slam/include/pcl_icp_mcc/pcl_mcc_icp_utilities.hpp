@@ -58,7 +58,7 @@ namespace g2o
   class EdgeSE3PriorVec;
   class EdgeSE3PriorQuat;
   class RobustKernelFactory;
-  G2O_REGISTER_TYPE(EDGE_SE3_PLANE, EdgeSE3Plane)
+  //G2O_REGISTER_TYPE(EDGE_SE3_PLANE, EdgeSE3Plane)
   G2O_REGISTER_TYPE(EDGE_SE3_PRIORXY, EdgeSE3PriorXY)
   G2O_REGISTER_TYPE(EDGE_SE3_PRIORXYZ, EdgeSE3PriorXYZ)
   G2O_REGISTER_TYPE(EDGE_SE3_PRIORVEC, EdgeSE3PriorVec)
@@ -486,12 +486,12 @@ struct KeyFrameSnapshot
   //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  using PointT = KeyFrame::PointT;
+  //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using PointT = pcl::PointXYZ;
   using Ptr = std::shared_ptr<KeyFrameSnapshot>;
 
 
-  KeyFrameSnapshot(const Eigen::Isometry3d& pose, const pcl::PointCloud<PointT>::ConstPtr& cloud): pose(pose),cloud(cloud)
+  KeyFrameSnapshot(Eigen::Isometry3d& pose,pcl::PointCloud<PointT>::ConstPtr& cloud): pose(pose),cloud(cloud)
    {}
     
 

@@ -10,7 +10,7 @@
 <!-- in case you use velodyne_driver, comment out the following line-->
   <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager" output="screen"/>
 
-<node pkg="cicp_slam" type="cicp_slam" name="cicp_slam" output="screen">
+<node pkg="cicp_slam" launch-prefix="xterm -e gdb --args" type="cicp_slam" name="cicp_slam" output="screen">
   </node>
 <node pkg="cicp_slam" type="map2odom_publisher.py" name="map2odom_publisher" /> 
 <node pkg="rviz" type="rviz" name="rviz1" args="-d  $(find cicp_slam)/pcl_icp_mcc.rviz"/>

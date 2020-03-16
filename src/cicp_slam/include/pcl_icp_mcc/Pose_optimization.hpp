@@ -30,8 +30,8 @@
 #include <visualization_msgs/MarkerArray.h>
 //#include <hdl_graph_slam/FloorCoeffs.h>
 
-#include <pcl_icp_mcc/SaveMap.h>
-#include <pcl_icp_mcc/DumpGraph.h>
+#include <cicp_slam/SaveMap.h>
+#include <cicp_slam/DumpGraph.h>
 
 //#include <nodelet/nodelet.h>
 //#include <pluginlib/class_list_macros.h>
@@ -836,7 +836,7 @@ private:
    * @param res
    * @return
    */
-  bool dump_service(pcl_icp_mcc::DumpGraphRequest& req,pcl_icp_mcc::DumpGraphResponse& res) {
+  bool dump_service(cicp_slam::DumpGraphRequest& req,cicp_slam::DumpGraphResponse& res) {
     std::lock_guard<std::mutex> lock(main_thread_mutex);
 
     std::string directory = req.destination;
@@ -880,7 +880,7 @@ private:
    * @param res
    * @return
    */
-  bool save_map_service(pcl_icp_mcc::SaveMapRequest& req,pcl_icp_mcc::SaveMapResponse& res) {
+  bool save_map_service(cicp_slam::SaveMapRequest& req,cicp_slam::SaveMapResponse& res) {
     std::vector<KeyFrameSnapshot::Ptr> snapshot;
 
     keyframes_snapshot_mutex.lock();

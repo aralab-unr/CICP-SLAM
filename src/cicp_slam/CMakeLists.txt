@@ -1,20 +1,81 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cicp_slam)
 get_filename_component(EXTERNAL_LIBRARIES ../../ ABSOLUTE)
-LIST( APPEND CMAKE_MODULE_PATH ${EXTERNAL_LIBRARIES}/external_libraries/g2o_master/cmake_modules )
+#set(CMAKE_INSTALL_RPATH ${EXTERNAL_LIBRARIES}/external_libraries/g2o_master/install_dir/lib)
+#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+#LIST( APPEND CMAKE_MODULE_PATH ${EXTERNAL_LIBRARIES}/external_libraries/g2o_master/cmake_modules )
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 set(CMAKE_BUILD_TYPE "DEBUG")
 add_definitions(-std=c++11 -msse -msse2 -msse3 -msse4 -msse4.1 -msse4.2)
-set(CMAKE_CXX_FLAGS "-std=c++11 -msse -msse2 -msse3 -msse4 -msse4.1 -msse4.2 -march=native")
+set(CMAKE_CXX_FLAGS "-std=c++11 -msse -msse2 -msse3 -msse4 -msse4.1 -msse4.2")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-set(PCL_DIR ${EXTERNAL_LIBRARIES}/external_libraries/pcl_1_9/install_dir/share/pcl-1.9)
-set(G2O_DIR ${EXTERNAL_LIBRARIES}/external_libraries/g2o_master/cmake_modules)
-find_package(PCL 1.9 REQUIRED)
-find_package(Eigen REQUIRED)
-find_package(G2O REQUIRED)
+#set(PCL_DIR ${EXTERNAL_LIBRARIES}/external_libraries/pcl_1_9/install_dir/share/pcl-1.9)
+#set(G2O_ROOT ${EXTERNAL_LIBRARIES}/external_libraries/g2o_master/install_dir/include)
+#list(APPEND CMAKE_MODULE_PATH "${EXTERNAL_LIBRARIES}/external_libraries/eigen_3_3_7/install_dir/share/eigen3/cmake")
+find_package(Eigen3 REQUIRED PATHS ${EXTERNAL_LIBRARIES}/external_libraries/eigen_3_3_7/install_dir/share/eigen3/cmake NO_DEFAULT_PATH)
+find_package(PCL 1.9 REQUIRED PATHS ${EXTERNAL_LIBRARIES}/external_libraries/pcl_1_9/install_dir/share/pcl-1.9 NO_DEFAULT_PATH )
+set(G2O_INCLUDE_DIR 
+  #g2o/core/base_vertex.h
+  #${G2O_ROOT}/include
+  #$ENV{G2O_ROOT}/include
+  #$ENV{G2O_ROOT}
+  ${EXTERNAL_LIBRARIES}/external_libraries/g2o_master/install_dir/include
+  #/usr/local/include
+  #/usr/include
+  #/opt/local/include
+  #/sw/local/include
+  #/sw/include
+  NO_DEFAULT_PATH
+  )
+macro(FIND_G2O_LIBRARY MYLIBRARY MYLIBRARYNAME)
+  find_library(${MYLIBRARY}
+    NAMES "g2o_${MYLIBRARYNAME}"
+    PATHS ${EXTERNAL_LIBRARIES}/external_libraries/g2o_master/install_dir/lib   
+    NO_DEFAULT_PATH
+    #NO_CMAKE_PATH
+    #NO_CMAKE_ENVIRONMENT_PATH
+    #NO_SYSTEM_ENVIRONMENT_PATH
+    #NO_CMAKE_SYSTEM_PATH
+    )
+
+endmacro(FIND_G2O_LIBRARY LIBRARY LIBRARYNAME)
+# Find the core elements
+
+FIND_G2O_LIBRARY(G2O_CORE_LIBRARY core)
+FIND_G2O_LIBRARY(G2O_STUFF_LIBRARY stuff)
+# Find the CLI library
+FIND_G2O_LIBRARY(G2O_CLI_LIBRARY cli)
+
+# Find the pluggable solvers
+FIND_G2O_LIBRARY(G2O_SOLVER_CHOLMOD solver_cholmod)
+FIND_G2O_LIBRARY(G2O_SOLVER_CSPARSE solver_csparse)
+FIND_G2O_LIBRARY(G2O_SOLVER_CSPARSE_EXTENSION csparse_extension)
+FIND_G2O_LIBRARY(G2O_SOLVER_DENSE solver_dense)
+FIND_G2O_LIBRARY(G2O_SOLVER_PCG solver_pcg)
+FIND_G2O_LIBRARY(G2O_SOLVER_SLAM2D_LINEAR solver_slam2d_linear)
+FIND_G2O_LIBRARY(G2O_SOLVER_STRUCTURE_ONLY solver_structure_only)
+FIND_G2O_LIBRARY(G2O_SOLVER_EIGEN solver_eigen)
+
+# Find the predefined types
+FIND_G2O_LIBRARY(G2O_TYPES_DATA types_data)
+FIND_G2O_LIBRARY(G2O_TYPES_ICP types_icp)
+FIND_G2O_LIBRARY(G2O_TYPES_SBA types_sba)
+FIND_G2O_LIBRARY(G2O_TYPES_SCLAM2D types_sclam2d)
+FIND_G2O_LIBRARY(G2O_TYPES_SIM3 types_sim3)
+FIND_G2O_LIBRARY(G2O_TYPES_SLAM2D types_slam2d)
+FIND_G2O_LIBRARY(G2O_TYPES_SLAM3D types_slam3d)
+
+# G2O itself declared found if we found the core libraries and at least one solver
+SET(G2O_FOUND "NO")
+IF(G2O_STUFF_LIBRARY AND G2O_CORE_LIBRARY AND G2O_INCLUDE_DIR AND G2O_SOLVERS_FOUND)
+  SET(G2O_FOUND "YES")
+ENDIF(G2O_STUFF_LIBRARY AND G2O_CORE_LIBRARY AND G2O_INCLUDE_DIR AND G2O_SOLVERS_FOUND)
+#find_package(g2o REQUIRED PATHS ${EXTERNAL_LIBRARIES}/external_libraries/g2o_master/install_dir/lib/cmake/g2o)
+
+#find_package(g2o REQUIRED PATHS ${EXTERNAL_LIBRARIES}/external_libraries/g2o_master/install_dir/lib/cmake/g2o )
 find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   roscpp
@@ -26,10 +87,10 @@ find_package(catkin REQUIRED COMPONENTS
   genmsg
   
 )
-message("G2O_dir "${G2O_DIR})
+message("G2O_dir "${G2O_TYPES_DATA})
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -136,11 +197,13 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
+message("g2o_include_dir:"${G2O_INCLUDE_DIR} )
 include_directories(include)
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
-   ${Eigen_INCLUDE_DIRS}
+   ${EIGEN3_INCLUDE_DIR}
+   ${G2O_INCLUDE_DIR}
 )
 
 ## Declare a C++ library
@@ -149,19 +212,14 @@ include_directories(
 # )
 message("pcl_libs:"${PCL_INCLUDE_DIRS})
 add_executable(pcl_icp_mcc src/pcl_icp_mcc.cpp)
-target_link_libraries(pcl_icp_mcc ${catkin_LIBRARIES} ${PCL_LIBRARIES}  ${Eigen_LIBRARIES})
+target_link_libraries(pcl_icp_mcc ${catkin_LIBRARIES} ${PCL_LIBRARIES}  ${Eigen3_LIBRARIES})
 
 add_executable(cicp_slam src/icp_mcc_nodelet.cpp)
-target_link_libraries(cicp_slam -lpthread ${catkin_LIBRARIES} ${PCL_LIBRARIES}  ${Eigen_LIBRARIES} ${g2o_TYPES_DATA}
-  ${G2O_CORE_LIBRARY}
-  ${G2O_STUFF_LIBRARY}
-  ${G2O_SOLVER_PCG}
-  ${G2O_SOLVER_CSPARSE}
-  ${G2O_SOLVER_CHOLMOD}
-  ${G2O_TYPES_SLAM3D}
-  ${G2O_TYPES_SLAM3D_ADDONS})
+message("G2o_path: "${G2O_CORE_LIBRARY})
+message("Eigen3_libs: "${EIGEN3_INCLUDE_DIRS})
+target_link_libraries(cicp_slam ${G2O_STUFF_LIBRARY} ${G2O_TYPES_DATA} ${G2O_CORE_LIBRARY} ${G2O_SOLVER_PCG} ${G2O_SOLVER_CSPARSE} ${G2O_SOLVER_CHOLMOD} ${G2O_TYPES_SLAM3D} ${G2O_TYPES_SLAM3D_ADDONS} ${catkin_LIBRARIES} ${PCL_LIBRARIES}  )
 
-add_dependencies(cicp_slam pcl_icp_mcc_gencpp)
+add_dependencies(cicp_slam cicpk_gencpp)
 #add_executable(preprocessing src/preprocessing.cpp)
 #target_link_libraries(preprocessing ${catkin_LIBRARIES} ${PCL_LIBRARIES}  ${Eigen_LIBRARIES})
 
